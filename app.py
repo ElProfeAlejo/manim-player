@@ -26,11 +26,16 @@ if st.button("Renderizar Video"):
             f.write(code)
 
         command = f"manim -ql --media_dir ./{media_dir} {script_name} ManimTemplate"
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=60)
-        video_path = f"{media_dir}/videos/{script_name[:-3]}/480p15/ManimTemplate.mp4"
-        
-        if os.path.exists(video_path):
-            st.video(video_path)
-        else:
-            st.error("Error al renderizar:")
-            st.code(result.stderr)
+        try:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=120)
+            video_path = f"{media_dir}/videos/{script_name[:-3]}/480p15/ManimTemplate.mp4"
+            if os.path.exists(video_path):
+                st.success("¡Renderizado completo!")
+                st.video(video_path)
+            elif result.returncode == -9:
+                st.error("❌ El servidor de Streamlit mató el proceso porque superó el límite de 1GB de RAM.")
+            else:
+                st.error("Error al procesar el video. Consola:")
+                st.code(result.stderr)
+        except subprocess.TimeoutExpired:
+            st.error("⏳ El renderizado tardó más de 2 minutos y fue cancelado para evitar bloquear la app.")
