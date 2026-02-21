@@ -25,7 +25,7 @@ if st.button("Renderizar Video"):
         with open(script_name, "w", encoding="utf-8") as f:
             f.write(code)
 
-        command = f"manim -ql --media_dir ./{media_dir} {script_name} ManimTemplate"
+        command = f"manim -ql -n 0,6 --media_dir ./{media_dir} {script_name} ManimTemplate"
         try:
             result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=120)
             video_path = f"{media_dir}/videos/{script_name[:-3]}/480p15/ManimTemplate.mp4"
