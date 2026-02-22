@@ -6,7 +6,16 @@ import uuid
 
 if 'user_id' not in st.session_state:
     st.session_state.user_id = str(uuid.uuid4())[:8]
-user_id = st.session_state.user_id
+
+if 'pantalla' not in st.session_state:
+    st.session_state.pantalla = 'editor'
+
+if 'codigo_guardado' not in st.session_state:
+    st.session_state.codigo_guardado = ""
+
+def reiniciar_app():
+    st.session_state.pantalla = 'editor'
+    st.session_state.codigo_guardado = "" 
 
 def ejecutar_manim(codigo, uid):
     st.info("🎬 Generando video con Manim... esto puede tardar.")
@@ -33,7 +42,6 @@ def ejecutar_manim(codigo, uid):
         
         if video_path and os.path.exists(video_path):
             shutil.copy(video_path, video_final)
-            st.success("✅ Video generado y localizado correctamente")
             return video_final
         else:
             st.error("❌ Manim terminó, pero no se encontró el video generado.")
@@ -46,11 +54,19 @@ def ejecutar_manim(codigo, uid):
         st.error(f"❌ Error crítico al ejecutar Manim: {str(e)}")
         return None
 
-code = st.text_area("Pega tu código de Manim aquí:", height=300)
-if st.button("Renderizar Video"):
-    if not code.strip():
-        st.warning("⚠️ Pega algún código primero.")
-    else:
-        ruta_del_video = ejecutar_manim(code, user_id)
-        if ruta_del_video:
-            st.video(ruta_del_video)
+if st.session_state.pantalla == 'editor':
+    code = st.text_area("Pega tu código de Manim aquí:", value=st.session_state.codigo_guardado, height=300)
+    
+    if st.button("Renderizar Video"):
+        if not code.strip():
+            st.warning("⚠️ Pega tu código de Manim primero.")
+        else:
+            st.session_state.codigo_guardado = code
+            st.session_state.pantalla = 'resultado'
+            st.rerun()
+elif st.session_state.pantalla == 'resultado':
+    ruta_del_video = ejecutar_manim(st.session_state.codigo_guardado, st.session_state.user_id)
+    if ruta_del_video:
+        st.video(ruta_del_video)
+    
+    st.button("Reiniciar", on_click=reiniciar_app)
